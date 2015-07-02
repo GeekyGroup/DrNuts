@@ -7,7 +7,7 @@ import time
 
 from paip import eliza
 
-TOKEN = "84912707:AAEzAhmIGD6Atvuk_MlYnNxemMi31rkDg8I"
+TOKEN = os.environ['TELEGRAM_TOKEN']
 
 rules = {
     "?*x hello ?*y": [
