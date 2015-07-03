@@ -1,13 +1,16 @@
 #!/usr/bin/env python2
 import os
 import sys
-sys.path.append(os.path.join(os.path.dirname(__file__), 'externals/paip-python/'))
 import telebot
 import time
-
+from datetime import datetime
 from paip import eliza
+sys.path.append(os.path.join(os.path.dirname(__file__), 'externals/paip-python/'))
+
 
 TOKEN = os.environ['TELEGRAM_TOKEN']
+LOGFILE = "drnuts-%s.log" % (datetime.date(datetime.now()))
+
 
 rules = {
     "?*x hello ?*y": [
@@ -16,6 +19,11 @@ rules = {
     "?*x hi ?*y": [
         "How do you do. Please state your problem."
         ],
+    "?*x bye ?*y": [
+        "No good bye. See you soon.",
+        "Good bye. I hope to see you again.",
+        "Very well. See you later."
+        ],        
     "?*x computer ?*y": [
         "Do computers worry you?",
         "What do you think about machines?",
@@ -210,7 +218,8 @@ default_responses = [
 
 
 def listener(*messages):
-   for m in messages:
+    logfile = open(LOGFILE, 'a')
+    for m in messages:
         rules_list = []
         for pattern, transforms in rules.items():
             # Remove the punctuation from the pattern to simplify matching.
@@ -218,21 +227,27 @@ def listener(*messages):
             transforms = [str(t).upper() for t in transforms]
             rules_list.append((pattern, transforms))
         
+        # chat
         chatid = m.chat.id
         if m.content_type == 'text':
-            # aqui entra eliza
-            text = eliza.remove_punct(m.text.upper())
-            eliza_response = eliza.respond(rules_list, text, default_responses)
+            username = m.chat.username
+            tgtext = m.text.encode("ascii", "replace")
+            text = eliza.remove_punct(tgtext).upper()
+            eliza_response = eliza.respond(rules_list, text, map(str.upper, default_responses))
             tb.send_message(chatid, eliza_response)
+            # logfile, for debuggind purposes only
+            logfile.write("%s - %s: \"%s\" - drnuts: \"%s\"\n" % (
+                str(datetime.now()), username, tgtext, eliza_response))
+
 
 def main():
     global tb
     tb = telebot.TeleBot(TOKEN)
     tb.get_update()  # cache exist message
     tb.set_update_listener(listener) #register listener
-    tb.polling(3)
+    tb.polling(5)
     while True:
-        time.sleep(15)
+        time.sleep(20)
 
 if __name__ == "__main__":
     main()
