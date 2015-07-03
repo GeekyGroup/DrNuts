@@ -3,14 +3,11 @@ import os
 import sys
 import telebot
 import time
+sys.path.append(os.path.join(os.path.dirname(__file__), 'externals/paip-python/'))
 from datetime import datetime
 from paip import eliza
-sys.path.append(os.path.join(os.path.dirname(__file__), 'externals/paip-python/'))
-
 
 TOKEN = os.environ['TELEGRAM_TOKEN']
-LOGFILE = "drnuts-%s.log" % (datetime.date(datetime.now()))
-
 
 rules = {
     "?*x hello ?*y": [
@@ -235,10 +232,6 @@ def listener(*messages):
             text = eliza.remove_punct(tgtext).upper()
             eliza_response = eliza.respond(rules_list, text, map(str.upper, default_responses))
             tb.send_message(chatid, eliza_response)
-            # logfile, for debuggind purposes only
-            logfile.write("%s - %s: \"%s\" - drnuts: \"%s\"\n" % (
-                str(datetime.now()), username, tgtext, eliza_response))
-
 
 def main():
     global tb
