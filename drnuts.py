@@ -215,7 +215,6 @@ default_responses = [
 
 
 def listener(*messages):
-    logfile = open(LOGFILE, 'a')
     for m in messages:
         rules_list = []
         for pattern, transforms in rules.items():
