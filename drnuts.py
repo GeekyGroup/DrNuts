@@ -13,6 +13,9 @@ rules = {
     "?*x hello ?*y": [
         "How do you do. Please state your problem."
         ],
+    "?*x hi ?*y": [
+        "How do you do. Please state your problem."
+        ],
     "?*x computer ?*y": [
         "Do computers worry you?",
         "What do you think about machines?",
@@ -208,26 +211,28 @@ default_responses = [
 
 def listener(*messages):
    for m in messages:
+        rules_list = []
+        for pattern, transforms in rules.items():
+            # Remove the punctuation from the pattern to simplify matching.
+            pattern = eliza.remove_punct(str(pattern.upper())) # kill unicode
+            transforms = [str(t).upper() for t in transforms]
+            rules_list.append((pattern, transforms))
+        
         chatid = m.chat.id
         if m.content_type == 'text':
-            text = m.text
-
             # aqui entra eliza
+            text = eliza.remove_punct(m.text.upper())
             eliza_response = eliza.respond(rules_list, text, default_responses)
             tb.send_message(chatid, eliza_response)
 
+def main():
+    global tb
+    tb = telebot.TeleBot(TOKEN)
+    tb.get_update()  # cache exist message
+    tb.set_update_listener(listener) #register listener
+    tb.polling(3)
+    while True:
+        time.sleep(15)
 
-rules_list = []
-for pattern, transforms in rules.items():
-    # Remove the punctuation from the pattern to simplify matching.
-    pattern = eliza.remove_punct(str(pattern.upper())) # kill unicode
-    transforms = [str(t).upper() for t in transforms]
-    rules_list.append((pattern, transforms))
-
-tb = telebot.TeleBot(TOKEN)
-tb.get_update()  # cache exist message
-tb.set_update_listener(listener) #register listener
-tb.polling(3)
-while True:
-    time.sleep(5)
-
+if __name__ == "__main__":
+    main()
